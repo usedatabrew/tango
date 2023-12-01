@@ -1,4 +1,4 @@
-module tango
+module github.com/usedatabrew/tango
 
 go 1.21
 
