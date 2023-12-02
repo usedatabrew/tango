@@ -9,6 +9,14 @@ reading)
 in case the producer is faster than the stage processors. It may be a great choice if you want to create an ETL pipeline with
 custom processing
 
+## Concept
+While building the pipeline, you must consider the case then one of the ETL stages may be slower than the rest.
+E.g you may want to execute custom data enrichment with SQL queries, that means you will be reading data from the source (like Kafka)
+way faster than processing them. That why we created Tango.
+
+<p align="center">
+<img src="https://miro.medium.com/v2/resize:fit:640/format:webp/1*B6KBntP9kiFBPN7NXlGruQ.gif" alt="">
+</p>
 
 ## Usage example
 
@@ -58,6 +66,10 @@ func main() {
 		}
 	}()
 
+	// Tango will consume messages from the producer channel and 
+	// pass them through the stages.
+	instance.SetProducerChannel(producerChannel)
+	
 	if err := instance.Start(); err != nil {
 		panic(err)
 	}
