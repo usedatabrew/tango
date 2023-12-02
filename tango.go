@@ -45,6 +45,16 @@ func (t *Tango) SetStages(stages []Stage) {
 	t.stages = stages
 }
 
+func (t *Tango) AppendStage(stage Stage) {
+	if len(t.stages) != 0 {
+		// reset isTheLast flag for exising stages
+		t.stages[len(t.stages)-1].isTheLast = false
+	}
+
+	stage.isTheLast = true
+	t.stages = append(t.stages, stage)
+}
+
 func (t *Tango) OnProcessed(callback AccomplishedCallback) {
 	t.onAccomplished = callback
 }
