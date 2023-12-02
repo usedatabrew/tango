@@ -58,10 +58,6 @@ func (t *Tango) Start() error {
 		return errors.New("no stages found. cant start without stages")
 	}
 
-	if t.onAccomplished == nil {
-		return errors.New("accomplished callback is not set")
-	}
-
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
@@ -86,7 +82,10 @@ func (t *Tango) Start() error {
 					result, err := t.stages[index].Function(msg)
 					if err == nil {
 						if t.stages[index].isTheLast {
-							t.onAccomplished(result, err)
+							if t.onAccomplished != nil {
+								t.onAccomplished(result, err)
+							}
+
 						}
 						if index+1 < len(t.stages) {
 							select {
@@ -98,7 +97,10 @@ func (t *Tango) Start() error {
 							}
 						}
 					} else {
-						t.onAccomplished(nil, errors.New("failed to process message"))
+						if t.onAccomplished != nil {
+							t.onAccomplished(nil, errors.New("failed to process message"))
+						}
+
 						log.Fatalf("Error in Stage %d: %v\n", index+1, err)
 						close(t.stages[0].Channel)
 						return
