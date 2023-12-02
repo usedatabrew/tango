@@ -82,10 +82,10 @@ You can pass buffered channels for each stage, that will help you mitigate spike
 
 ```go
 stage := tango.Stage{
-  Channel: make(chan interface{}, 100),
-  Function: func(msg interface{}) (interface{}, error) {
-    return msg, nil
-  },
+    Channel: make(chan interface{}, 100),
+    Function: func(msg interface{}) (interface{}, error) {
+        return msg, nil
+    },
 },
 ```
 
