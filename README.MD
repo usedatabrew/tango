@@ -75,3 +75,29 @@ func main() {
 	}
 }
 ```
+
+### Buffered channels
+
+You can pass buffered channels for each stage, that will help you mitigate spikes in when a lot of updates going to the pipeline
+
+```go
+stage := tango.Stage{
+  Channel: make(chan interface{}, 100),
+  Function: func(msg interface{}) (interface{}, error) {
+    return msg, nil
+  },
+},
+```
+
+### Accomplished callback
+Sometimes you need to perform some extra work after the last stage is done, like messages was written to the sink
+You can do this by passing callback function to  `OnProcessed` method of Tango instance
+
+```go
+tangoInstance.OnProcessed(func(i interface{}, err error) {
+    if err != nil {
+        fmt.Errorf("Messages happened in the last stage %v", err)
+    }
+    fmt.Println("Message processed", i)
+})
+```

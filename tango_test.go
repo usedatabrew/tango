@@ -44,8 +44,6 @@ func TestBuildSequenceStream(t *testing.T) {
 	tango := NewTango()
 	tango.SetStages(stages)
 	tango.SetProducerChannel(producerChannel)
-	tango.onAccomplished = func(i interface{}, err error) {
-	}
 	err = tango.Start()
 	if err != nil {
 		t.Fatalf("failed to start tango %v", err)
