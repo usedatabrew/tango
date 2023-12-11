@@ -69,9 +69,8 @@ func (t *Tango) Start() error {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-
+	sigCh := make(chan os.Signal, 1)
 	go func() {
-		sigCh := make(chan os.Signal, 1)
 		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 		<-sigCh
 		cancel()
@@ -80,8 +79,10 @@ func (t *Tango) Start() error {
 	for i := range t.stages {
 		t.wg.Add(1)
 		go func(index int) {
-			defer close(t.stages[index].Channel)
-			defer t.wg.Done()
+			defer func() {
+				close(t.stages[index].Channel)
+				t.wg.Done()
+			}()
 
 			for msg := range t.stages[index].Channel {
 				select {
@@ -125,8 +126,10 @@ func (t *Tango) Start() error {
 		for {
 			select {
 			case <-ctx.Done():
-				// Context canceled, break the loop
-				log.Info("Sigterm received")
+				if t.closed.Load() {
+					break
+				}
+				t.closed.Store(true)
 				t.wg.Done()
 				break
 			case msg, ok := <-t.producerChannel:
@@ -144,6 +147,7 @@ func (t *Tango) Start() error {
 					if t.closed.Load() {
 						break
 					}
+
 					t.stages[0].Channel <- msg
 				}
 			}

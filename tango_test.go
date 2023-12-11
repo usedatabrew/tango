@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TestBuildSequenceStream(t *testing.T) {
+func Test_BuildSequenceStream(t *testing.T) {
 	f, err := os.Create("data.txt")
 	stages := []Stage{
 		{
