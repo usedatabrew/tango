@@ -38,6 +38,7 @@ func Test_BuildSequenceStream(t *testing.T) {
 	go func() {
 		for i := 0; i <= 10000000; i++ {
 			producerChannel <- i
+			time.Sleep(time.Second)
 		}
 	}()
 

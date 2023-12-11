@@ -1,7 +1,6 @@
 package tango
 
 import (
-	"context"
 	"errors"
 	"github.com/charmbracelet/log"
 	"os"
@@ -68,25 +67,19 @@ func (t *Tango) Start() error {
 		return errors.New("no stages found. cant start without stages")
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
 	sigCh := make(chan os.Signal, 1)
-	go func() {
-		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-		<-sigCh
-		cancel()
-	}()
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
 	for i := range t.stages {
-		t.wg.Add(1)
 		go func(index int) {
 			defer func() {
 				close(t.stages[index].Channel)
-				t.wg.Done()
 			}()
 
 			for msg := range t.stages[index].Channel {
 				select {
-				case <-ctx.Done():
+				case <-done:
 					t.closed.Store(true)
 					break
 				default:
@@ -102,7 +95,7 @@ func (t *Tango) Start() error {
 							select {
 							case t.stages[index+1].Channel <- result:
 								// Message sent successfully to the next stage
-							case <-ctx.Done():
+							case <-done:
 								// Context canceled, break the loop
 								break
 							}
@@ -125,12 +118,12 @@ func (t *Tango) Start() error {
 	go func() {
 		for {
 			select {
-			case <-ctx.Done():
+			case <-done:
 				if t.closed.Load() {
 					break
 				}
 				t.closed.Store(true)
-				t.wg.Done()
+				close(done)
 				break
 			case msg, ok := <-t.producerChannel:
 				if !ok {
@@ -154,7 +147,7 @@ func (t *Tango) Start() error {
 		}
 	}()
 
-	t.wg.Wait()
+	<-sigCh
 
 	return nil
 }
